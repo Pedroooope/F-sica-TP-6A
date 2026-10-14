@@ -1,0 +1,253 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vía Láctea · Atlas interactivo</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#02030a;--fg:#e8eefc;--mut:#8d9bbd;--acc:#8fb4ff;--gold:#ffd27a;--line:rgba(160,190,255,.18);--glass:rgba(8,12,28,.66);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:Rajdhani,system-ui,sans-serif;overflow:hidden}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,6,.8))}
+.ui{position:fixed;z-index:5}
+#title{left:16px;top:calc(env(safe-area-inset-top,0px) + 14px);pointer-events:none}
+#title h1{font:700 15px Orbitron,sans-serif;letter-spacing:.32em;margin:0}
+#title p{margin:3px 0 0;font-size:12px;color:var(--mut);letter-spacing:.08em}
+#views{left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 12px);display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:56vw}
+button{font:600 12px Rajdhani,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--fg);background:var(--glass);border:1px solid var(--line);border-radius:999px;padding:7px 13px;cursor:pointer;backdrop-filter:blur(8px);transition:.25s}
+button:hover{border-color:var(--acc);box-shadow:0 0 14px rgba(143,180,255,.3)}
+button.on{background:rgba(143,180,255,.2);border-color:var(--acc)}
+#leg{left:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;flex-direction:column;gap:5px;max-width:230px;padding:10px 12px;background:var(--glass);border:1px solid var(--line);border-radius:14px;backdrop-filter:blur(10px)}
+#leg h4{margin:0 0 3px;font:500 10px Orbitron,sans-serif;letter-spacing:.25em;color:var(--mut)}
+.ch{display:flex;align-items:center;gap:9px;font-size:13px;cursor:pointer;opacity:1;transition:.25s;user-select:none}
+.ch i{width:9px;height:9px;border-radius:50%;box-shadow:0 0 8px currentColor;background:currentColor}
+.ch.off{opacity:.35}.ch.off i{background:transparent;box-shadow:none;border:1px solid currentColor}
+#sb{left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 16px);text-align:center;font-size:12px;letter-spacing:.1em;color:var(--mut);pointer-events:none}
+#sb div{height:6px;border:1px solid var(--mut);border-top:0;margin:0 auto 4px}
+#hint{right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);font-size:11px;color:var(--mut);letter-spacing:.06em;max-width:230px;text-align:right;pointer-events:none}
+#panel{right:16px;top:calc(env(safe-area-inset-top,0px) + 64px);width:330px;max-height:calc(100% - 130px);overflow:auto;background:var(--glass);border:1px solid var(--line);border-radius:16px;padding:18px 20px;backdrop-filter:blur(14px);transform:translateX(120%);transition:transform .45s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 40px rgba(60,90,200,.18)}
+#panel.open{transform:none}
+#panel .x{position:absolute;right:10px;top:10px;padding:2px 9px;font-size:16px}
+.tag{font:500 10px Orbitron,sans-serif;letter-spacing:.22em;color:var(--acc);text-transform:uppercase}
+#panel h2{font:700 20px Orbitron,sans-serif;margin:6px 0 10px;letter-spacing:.04em}
+#panel h3{font:500 10px Orbitron,sans-serif;letter-spacing:.22em;color:var(--mut);margin:14px 0 5px;text-transform:uppercase}
+#panel p{margin:0;font-size:15px;line-height:1.4;color:#cdd7f0}
+#panel dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:5px 12px;font-size:14px}
+#panel dt{color:var(--mut)}#panel dd{margin:0;color:var(--fg)}
+#panel .note{margin-top:12px;padding:8px 10px;border-left:2px solid #8a6bff;background:rgba(138,107,255,.1);font-size:13px}
+#tip{pointer-events:none;padding:6px 10px;background:rgba(5,8,20,.85);border:1px solid var(--line);border-radius:8px;font-size:13px;opacity:0;transition:opacity .15s;white-space:nowrap}
+#tip b{display:block;font:600 12px Orbitron,sans-serif;letter-spacing:.06em}#tip span{color:var(--mut);font-size:12px}
+#lbl{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:3}
+.lb{position:absolute;width:0;height:0;transition:opacity .3s}
+.lb b{position:absolute;left:0;top:0;transform:translate(-50%,-50%);white-space:nowrap;font:600 10.5px Rajdhani,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:rgba(205,222,255,.68);text-shadow:0 0 6px #000,0 0 3px #000}
+.lb.sel b{color:#fff}
+.lb i{display:none}
+.lb.r b{top:20px;transform:translateX(-50%);color:var(--gold)}
+.lb.r i{display:block;position:absolute;left:-10px;top:-10px;width:20px;height:20px;border:1.5px solid var(--gold);border-radius:50%;animation:pu 2.2s ease-out infinite}
+.lb.sg i{border-color:#ff9a8a}.lb.sg b{color:#ffb4a6}
+.lb.sc b{color:rgba(130,150,200,.7);font-size:9.5px}
+@keyframes pu{0%{transform:scale(.7);opacity:1}100%{transform:scale(2);opacity:0}}
+#fade{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .42s;z-index:9}
+#sunnote{left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 62px);font-size:12px;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;opacity:0;transition:.4s;pointer-events:none;text-align:center}
+#aud{right:16px;top:calc(env(safe-area-inset-top,0px) + 12px);display:flex;flex-direction:column;align-items:flex-end;gap:6px;z-index:8}
+#audp{display:none;width:250px;padding:12px 14px;background:var(--glass);border:1px solid var(--line);border-radius:14px;backdrop-filter:blur(14px)}
+#audp.open{display:block}
+#audp h4{margin:0 0 7px;font:500 10px Orbitron,sans-serif;letter-spacing:.22em;color:var(--mut)}
+#audp h4:not(:first-child){margin-top:14px}
+#audp .row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+#audp .row button,.fb{padding:5px 10px;font-size:11px}
+#audp input[type=range]{width:100%;margin:8px 0 2px;accent-color:#8fb4ff}
+#audp .nm{font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fb{display:inline-block;font:600 12px Rajdhani,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--fg);background:var(--glass);border:1px solid var(--line);border-radius:999px;cursor:pointer;transition:.25s}
+.fb:hover{border-color:var(--acc);box-shadow:0 0 14px rgba(143,180,255,.3)}
+@media(max-width:760px){#views{max-width:96vw;top:calc(env(safe-area-inset-top,0px) + 50px)}#title{top:calc(env(safe-area-inset-top,0px) + 12px)}#hint{display:none}#leg{max-width:170px;padding:8px 10px}.ch{font-size:12px}#panel{left:10px;right:10px;width:auto;top:auto;bottom:10px;max-height:44vh;transform:translateY(120%)}body.pn #leg,body.pn #sb{display:none}}
+</style></head><body>
+<canvas id="c"></canvas><div id="vig"></div><div id="lbl"></div>
+<div id="title" class="ui"><h1>VÍA LÁCTEA</h1><p>Atlas interactivo · esquema a escala aproximada</p></div>
+<div id="views" class="ui"><button data-v="top" class="on">Cenital</button><button data-v="tilt">Vista 3D</button><button data-v="sun">Desde el Sistema Solar</button><button id="reset">⟲ Vista general</button></div>
+<div id="sunnote" class="ui">Mirando hacia el centro galáctico · arrastrá para girar</div>
+<div id="aud" class="ui"><button id="audb">♪ Audio</button><div id="audp">
+<h4>MÚSICA DE FONDO</h4><div class="row"><label class="fb">Elegir archivo<input type="file" id="mf" accept="audio/*" hidden></label><button id="mp">▶</button><button id="mx">Quitar</button></div>
+<input type="range" id="mv" min="0" max="1" step=".01" value=".5" aria-label="Volumen de la música"><div class="nm" id="mn">Sin archivo</div>
+<h4>SONIDO DE CLICS</h4><div class="row"><label class="fb">Elegir archivo<input type="file" id="cf" accept="audio/*" hidden></label><button id="cp">Probar</button><button id="cx">Quitar</button></div>
+<input type="range" id="cvol" min="0" max="1" step=".01" value=".8" aria-label="Volumen de los clics"><div class="nm" id="cn">Sin archivo</div>
+</div></div>
+<div id="leg" class="ui"><h4>CAPAS</h4></div>
+<div id="sb" class="ui"><div id="sbar"></div><span id="stx"></span></div>
+<div id="hint" class="ui">Arrastrá: rotar · Shift / clic derecho / dos dedos: desplazar · Rueda / pellizco: zoom · Clic en una estructura para ver su ficha</div>
+<div id="panel" class="ui"></div><div id="tip" class="ui"></div><div id="fade"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=id=>document.getElementById(id),D=Math.PI/180,B=Math.tan(12*D),PHI=.568,SR=8.2,KLY=3.262,TAU=Math.PI*2;
+const G={disc:0,bulge:1,halo:2,gc:3,scut:4,sag:5,per:6,out:7,ori:8,dm:9,sgra:10,sun:11};
+const LYOF={sgra:'sgra',bulge:'bulge',disc:'disc',halo:'halo',gc:'gc',dm:'dm',sun:'sun',scut:'arms',sag:'arms',per:'arms',out:'arms',ori:'arms'};
+const S={
+sgra:{n:'Sagitario A*',t:'Agujero negro supermasivo',d:'Fuente de radio compacta en el centro dinámico de la galaxia. Estrellas cercanas, como S2, la orbitan a miles de km/s: de ahí se midió su masa.',f:'Ancla gravitacional del núcleo galáctico. Hoy es poco activo: consume muy poca materia. En 2022 el Event Horizon Telescope publicó su imagen: el anillo de luz alrededor de su sombra.',data:[['Masa','≈ 4,3 millones de M☉'],['Distancia al Sol','≈ 26 700 años luz (8,2 kpc)'],['Horizonte de sucesos','≈ 12 millones de km (≈ 0,08 UA)'],['Reconocimiento','Nobel de Física 2020 por su estudio']],note:'A esta escala es un punto: su tamaño real es minúsculo frente a la galaxia.',foc:[0,0,3]},
+bulge:{n:'Bulbo y barra central',t:'Núcleo estelar',d:'Concentración densa y abultada de estrellas viejas en el centro, atravesada por una barra alargada de estrellas.',f:'Aloja la mayor densidad estelar de la galaxia. La barra canaliza gas hacia el centro y marca el punto donde nacen los brazos espirales.',data:[['Diámetro del bulbo','≈ 10 000 años luz'],['Barra','≈ 27 000 al de largo, inclinada ≈ 27° respecto a la línea Sol–centro'],['Edad estelar','En su mayoría > 10 000 millones de años'],['Masa','≈ 1–2 × 10¹⁰ M☉']],foc:[0,0,7]},
+disc:{n:'Disco galáctico',t:'Estructura principal',d:'Disco delgado y achatado donde se concentran la mayoría de las estrellas, el gas y el polvo, y donde nacen las estrellas nuevas.',f:'Gira de forma diferencial alrededor del centro. Tiene un disco delgado y joven y otro grueso y más viejo. Toda la formación estelar actual ocurre en su plano.',data:[['Diámetro','≈ 100 000 años luz'],['Espesor','≈ 1 000 al (disco grueso ≈ 3 000 al)'],['Estrellas','100 000 – 400 000 millones'],['Rotación a la altura del Sol','≈ 230 km/s']]},
+sag:{n:'Brazo de Sagitario-Carina',t:'Brazo espiral principal',d:'Brazo interior respecto del Sol, rico en gas molecular y nubes de formación estelar masiva. Se ve hacia Sagitario y Carina.',f:'Concentra regiones HII brillantes y estrellas jóvenes, azules y calientes.',data:[['Distancia al Sol','≈ 5 000 al, hacia el interior'],['Ángulo de apertura','≈ 12°'],['Ejemplos','Nebulosas de la Laguna, Omega (M17) y de Carina']],foc:[9,24]},
+per:{n:'Brazo de Perseo',t:'Brazo espiral principal',d:'Gran brazo exterior vecino al Sol, con enormes cúmulos jóvenes y regiones de formación estelar. Se ve hacia Perseo y Casiopea.',f:'Es uno de los dos brazos con más estrellas y gas denso junto con Scutum-Centaurus.',data:[['Distancia al Sol','≈ 6 400 al, hacia el exterior'],['Ángulo de apertura','≈ 12°'],['Ejemplos','Doble Cúmulo de Perseo, NGC 7538']],foc:[9,24]},
+scut:{n:'Brazo de Scutum-Centaurus',t:'Brazo espiral principal',d:'Brazo interior que parte de un extremo de la barra central. Concentra gran parte del gas molecular y de las estrellas masivas de la galaxia interna.',f:'Junto con Perseo, es uno de los brazos más ricos en estrellas.',data:[['Ubicación','Interior, entre el Sol y el centro'],['Ángulo de apertura','≈ 12°'],['Ejemplos','Cúmulo RSGC1 y la región W51']],foc:[9,24]},
+out:{n:'Brazo Exterior',t:'Brazo espiral (Norma-Exterior)',d:'Brazo más externo, extenso y tenue, con menos estrellas y más gas atómico. En esa zona el disco se curva y ondula.',f:'Marca el borde visible del disco estelar. Su deformación (alabeo) se atribuye a interacciones con galaxias satélite.',data:[['Radio galactocéntrico','≈ 40 000 – 50 000 al'],['Densidad estelar','Baja'],['Rasgo','Alabeo del disco']],foc:[9,26]},
+ori:{n:'Brazo de Orión',t:'Espolón local · aquí está el Sistema Solar',d:'Fragmento de brazo entre Sagitario-Carina y Perseo. Nuestro Sistema Solar está cerca de su borde interior.',f:'Contiene estrellas cercanas, la Nebulosa de Orión y numerosos cúmulos. Es menor que los brazos principales.',data:[['Longitud','≈ 11 000 al'],['Ancho','≈ 3 500 al'],['Nebulosa de Orión','≈ 1 340 al del Sol']],foc:[9,0,9]},
+sun:{n:'Sistema Solar',t:'Nuestra ubicación',d:'El Sol y sus planetas, en el espolón de Orión, a unos dos tercios del radio del disco desde el centro.',f:'Orbita el centro galáctico en una trayectoria casi circular y oscila verticalmente a través del plano del disco.',data:[['Distancia al centro','≈ 26 700 al (8,2 kpc)'],['Velocidad orbital','≈ 230 km/s'],['Año galáctico','≈ 225–250 millones de años'],['Altura sobre el plano','≈ 65 al']],foc:[9,0,5]},
+halo:{n:'Halo galáctico',t:'Halo estelar',d:'Esfera tenue y extensa de estrellas viejas, gas caliente y cúmulos globulares que envuelve al disco.',f:'Pocas estrellas, pero muy antiguas y pobres en elementos pesados: restos de la formación temprana y de galaxias enanas absorbidas.',data:[['Radio','≈ 100 000 al o más'],['Masa estelar','≈ 1 000 millones de M☉'],['Edad','≈ 11 000 – 13 000 millones de años']],foc:[0,60]},
+gc:{n:'Cúmulos globulares',t:'Poblaciones antiguas',d:'Agrupaciones esféricas de decenas a cientos de miles de estrellas muy viejas, repartidas sobre todo en el halo y el bulbo.',f:'Son fósiles de la juventud de la galaxia. Su distribución permitió a Shapley ubicar el centro galáctico en 1918.',data:[['Conocidos','≈ 160'],['Estrellas por cúmulo','10⁴ – 10⁶'],['Edad','≈ 11 000 – 13 000 millones de años'],['El mayor','Omega Centauri (≈ 10 millones de estrellas, a 17 000 al)']],foc:[0,50]},
+dm:{n:'Materia oscura',t:'Representación conceptual',d:'Componente que no emite ni absorbe luz y solo se detecta por su gravedad. Forma un halo masivo, aproximadamente esférico, mucho más grande que el disco visible.',f:'Explica por qué las estrellas externas giran tan rápido (curva de rotación plana) y mantiene unida a la galaxia.',data:[['Fracción de la materia','≈ 85 %'],['Masa total','≈ 1–2 billones de M☉'],['Extensión','> 600 000 al']],note:'La nube violeta es una ilustración artística: la materia oscura no se observa directamente y su forma exacta no se conoce.',foc:[0,95]}
+};
+const LM={arms:['Brazos espirales','#8fb4ff'],disc:['Disco galáctico','#ffd9a8'],bulge:['Bulbo y barra','#ffb870'],sgra:['Sagitario A*','#ff8f7a'],sun:['Sistema Solar','#ffd27a'],halo:['Halo','#b9c6ff'],gc:['Cúmulos globulares','#fff0c0'],dm:['Materia oscura (concepto)','#8a6bff'],scale:['Escala y distancias','#6f86b8'],labels:['Etiquetas','#9aa8c7']};
+const ON={};Object.keys(LM).forEach(k=>ON[k]=k!=='dm');
+let seed=11;const rnd=()=>(seed=seed*16807%2147483647)/2147483647;
+const gs=()=>(rnd()+rnd()+rnd()+rnd()-2)*1.732;
+const mixc=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
+const ang=(k,r)=>k*Math.PI/2+Math.log(r/3)/B,apos=(k,r)=>{const a=ang(k,r);return new THREE.Vector3(r*Math.cos(a),0,r*Math.sin(a))};
+const sunPos=new THREE.Vector3(SR*Math.cos(PHI),0,SR*Math.sin(PHI));
+const VS=`attribute vec3 aCol;attribute float size,grp,al,tw;uniform float uScale,uTime,uSel,uPR,uDim;varying vec3 vC;varying float vA;
+void main(){vec4 mv=modelViewMatrix*vec4(position,1.);float d=max(-mv.z,.001);float big=step(.5,size);
+float hl=step(abs(grp-uSel),.5);float dim=uSel<0.?1.:mix(uDim,1.8,hl);
+float sz=size*uScale/d*(1.+.3*hl);sz=clamp(sz,1.3*uPR,mix(7.,110.,big)*uPR);
+float nf=size>=2.?smoothstep(6.,22.,d):smoothstep(.15,1.5,d);
+float tws=1.+.3*sin(uTime*(1.+tw*3.)+tw*50.)*(1.-big);
+vA=al*dim*nf*tws;vC=aCol;gl_PointSize=sz;gl_Position=projectionMatrix*mv;}`;
+const FS=`varying vec3 vC;varying float vA;void main(){vec2 p=gl_PointCoord-.5;float r=dot(p,p)*4.;float f=exp(-r*4.)*(1.-smoothstep(.7,1.,r));gl_FragColor=vec4(vC,f*vA);}`;
+const cv=$('c'),R=new THREE.WebGLRenderer({canvas:cv,antialias:false});
+R.setPixelRatio(Math.min(devicePixelRatio||1,2));R.setClearColor(0x02030a);
+const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(42,1,.01,3000);
+const U={uScale:{value:1},uTime:{value:0},uSel:{value:-1},uPR:{value:R.getPixelRatio()},uDim:{value:.5}};
+const mat=new THREE.ShaderMaterial({uniforms:U,vertexShader:VS,fragmentShader:FS,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
+const LY={};
+const mk=n=>({p:new Float32Array(n*3),c:new Float32Array(n*3),s:new Float32Array(n),g:new Float32Array(n),a:new Float32Array(n),t:new Float32Array(n),i:0});
+const add=(b,x,y,z,c,s,a,g)=>{const i=b.i++;b.p[i*3]=x;b.p[i*3+1]=y;b.p[i*3+2]=z;b.c.set(c,i*3);b.s[i]=s;b.a[i]=a;b.g[i]=g;b.t[i]=rnd()};
+function fin(key,b){const g=new THREE.BufferGeometry();[['position',b.p,3],['aCol',b.c,3],['size',b.s,1],['grp',b.g,1],['al',b.a,1],['tw',b.t,1]].forEach(([n,a,k])=>g.setAttribute(n,new THREE.BufferAttribute(a,k)));g.setDrawRange(0,b.i);const o=new THREE.Points(g,mat);o.frustumCulled=false;scene.add(o);(LY[key]=LY[key]||[]).push(o)}
+// disco suave
+let b=mk(60000);
+for(let i=0;i<60000;i++){const r=-3.4*Math.log(1-rnd()*.9895),a=rnd()*TAU;add(b,r*Math.cos(a),gs()*.07*(1+r*.08),r*Math.sin(a),mixc([1,.82,.6],[.8,.86,1],rnd()*.5),.02+Math.pow(rnd(),3)*.06,(.3+rnd()*.4)*(1-.6*(r/15.5)**2),0)}
+fin('disc',b);
+// brazos + nebulosas + espolón de Orión
+b=mk(100000);const ctr=[],gcPos=[];
+for(let i=0;i<90000;i++){const k=rnd()*4|0,r=3*Math.exp(Math.pow(rnd(),1.25)*Math.log(15.5/3)),a=ang(k,r),sg=.22+.05*r;
+add(b,r*Math.cos(a)+gs()*sg,gs()*.05*(1+r*.06),r*Math.sin(a)+gs()*sg,mixc([.6,.75,1],[1,.95,.9],Math.pow(rnd(),1.5)),.02+Math.pow(rnd(),3)*.07,(.25+rnd()*.5)*(1-(r-3)/14*.55),7-k)}
+const T=new THREE.Vector3(B*Math.cos(PHI)-Math.sin(PHI),0,B*Math.sin(PHI)+Math.cos(PHI)).normalize(),N=new THREE.Vector3(-T.z,0,T.x);
+for(let i=0;i<4500;i++){const s=(rnd()*2-1)*1.8,w=gs()*.17;add(b,sunPos.x+T.x*s+N.x*w,gs()*.04,sunPos.z+T.z*s+N.z*w,mixc([.65,.78,1],[1,.95,.85],rnd()),.02+Math.pow(rnd(),3)*.06,.3+rnd()*.5,8)}
+const NC=[[1,.35,.6],[.4,.6,1],[.72,.42,1],[1,.6,.4]];
+for(let i=0;i<300;i++){const k=rnd()*4|0,r=3.8+rnd()*11,c=apos(k,r).add(new THREE.Vector3(gs()*.35,0,gs()*.35));for(let j=0;j<3;j++)add(b,c.x+gs()*.25,gs()*.04,c.z+gs()*.25,NC[rnd()*4|0],.5+rnd()*.6,.04+rnd()*.06,7-k)}
+for(let i=0;i<60;i++){const c=apos(rnd()*4|0,3.5+rnd()*11);add(b,c.x+gs()*.3,0,c.z+gs()*.3,[.5,.7,1],.5+rnd()*.5,.05,6)}
+fin('arms',b);
+// bulbo y barra
+b=mk(45020);const BA=PHI-.47,cb=Math.cos(BA),sb=Math.sin(BA);
+for(let i=0;i<45000;i++){let x,y,z;if(rnd()<.45){x=gs()*1.7;z=gs()*.55;y=gs()*.35}else{x=gs()*.75;y=gs()*.6;z=gs()*.75}
+add(b,x*cb-z*sb,y,x*sb+z*cb,mixc([1,.7,.4],[1,.92,.75],rnd()),.02+Math.pow(rnd(),3)*.07,.14+rnd()*.25,1)}
+[[3.6,.2,[1,.68,.38]],[1.7,.3,[1,.82,.58]],[.8,.45,[1,.94,.82]]].forEach(([s,a,c])=>add(b,0,0,0,c,s,a,1));
+fin('bulge',b);
+b=mk(3);add(b,0,0,0,[1,.97,.92],.14,1,10);add(b,0,0,0,[.7,.8,1],.45,.4,10);fin('sgra',b);
+// halo
+b=mk(14000);
+for(let i=0;i<14000;i++){const r=1.5*Math.exp(rnd()*Math.log(26/1.5)),x=gs(),y=gs()*.85,z=gs(),l=Math.hypot(x,y,z)||1;add(b,x/l*r,y/l*r,z/l*r,[.8,.85,1],.02+rnd()*.03,.12+rnd()*.28,2)}
+fin('halo',b);
+// cúmulos globulares
+b=mk(160);
+for(let i=0;i<80;i++){const r=2*Math.exp(rnd()*Math.log(24/2)),x=gs(),y=gs(),z=gs(),l=Math.hypot(x,y,z)||1,p=new THREE.Vector3(x/l*r,y/l*r*.9,z/l*r);gcPos.push(p);add(b,p.x,p.y,p.z,[1,.88,.65],.2,.9,3);add(b,p.x,p.y,p.z,[1,.85,.6],.6,.14,3)}
+fin('gc',b);
+// materia oscura (conceptual)
+b=mk(5000);
+for(let i=0;i<5000;i++){let r,x,y,z;do{r=38*Math.cbrt(rnd())}while(rnd()>1/(1+(r/9)**2));x=gs();y=gs();z=gs();const l=Math.hypot(x,y,z)||1;add(b,x/l*r,y/l*r,z/l*r,[.4,.3,.95],3.2,.04,9)}
+fin('dm',b);
+// estrellas de fondo
+b=mk(7000);
+for(let i=0;i<7000;i++){const x=gs(),y=gs(),z=gs(),l=Math.hypot(x,y,z)||1,r=400+rnd()*500;add(b,x/l*r,y/l*r,z/l*r,mixc([.8,.88,1],[1,.9,.75],rnd()),.03,.2+rnd()*.5,12)}
+fin('bg',b);
+// escala
+const lm=new THREE.LineBasicMaterial({color:0x6a88d8,transparent:true,opacity:.22});
+[5,10,15].forEach(r=>{const pts=[];for(let i=0;i<=160;i++)pts.push(new THREE.Vector3(r*Math.cos(i/160*TAU),0,r*Math.sin(i/160*TAU)));const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),lm);scene.add(l);(LY.scale=LY.scale||[]).push(l)});
+{const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),sunPos]),new THREE.LineDashedMaterial({color:0xffd27a,transparent:true,opacity:.55,dashSize:.3,gapSize:.25}));l.computeLineDistances();scene.add(l);LY.scale.push(l)}
+LY.dm.forEach(o=>o.visible=false);
+// etiquetas
+const LB=[];
+function lab(id,txt,pos,ly,cls=''){const e=document.createElement('div');e.className='lb '+cls;e.innerHTML='<i></i><b>'+txt+'</b>';$('lbl').appendChild(e);LB.push({id,pos,ly,e})}
+[['out',0,14.3],['per',1,12.4],['sag',2,10.9],['scut',3,8.4]].forEach(([id,k,r])=>lab(id,S[id].n,apos(k,r),'arms'));
+lab('sun','Sistema Solar · estás acá',sunPos,'sun','r');
+lab('ori','Brazo de Orión',sunPos.clone().add(T.clone().multiplyScalar(2.3)).add(N.clone().multiplyScalar(-.5)),'arms');
+lab('sgra','Sgr A*',new THREE.Vector3(),'sgra','r sg');
+lab('bulge','Bulbo',new THREE.Vector3(Math.cos(BA)*2.8,0,Math.sin(BA)*2.8),'bulge');
+lab('disc','Disco galáctico',new THREE.Vector3(-4,0,-13.6),'disc');
+lab('halo','Halo',new THREE.Vector3(-3,13,-7),'halo');
+lab('gc','Cúmulos globulares',gcPos[3],'gc');
+lab('dm','Materia oscura (concepto)',new THREE.Vector3(26,0,-14),'dm');
+[5,10,15].forEach(r=>lab(null,r+' kpc · '+Math.round(r*KLY*10)*100/10+' al',new THREE.Vector3(0,0,-r),'scale','sc'));
+lab(null,'≈ 26 700 al',sunPos.clone().multiplyScalar(.5).add(new THREE.Vector3(0,0,.35)),'scale','sc');
+// puntos de selección
+const PK=[],ring=(f,n)=>Array.from({length:n},(_,i)=>f(i/n));
+PK.push({id:'sun',ly:'sun',th:18,b:1,pts:[sunPos]},{id:'sgra',ly:'sgra',th:15,b:1,pts:[new THREE.Vector3()]},
+{id:'bulge',ly:'bulge',th:34,b:1.3,pts:ring(t=>new THREE.Vector3(Math.cos(t*TAU)*1.3,0,Math.sin(t*TAU)*1.3)).concat([new THREE.Vector3(Math.cos(BA)*2.2,0,Math.sin(BA)*2.2),new THREE.Vector3(-Math.cos(BA)*2.2,0,-Math.sin(BA)*2.2)])},
+{id:'ori',ly:'arms',th:20,b:1,pts:ring(t=>sunPos.clone().add(T.clone().multiplyScalar((t*2-1)*1.8)),7)});
+[['out',0],['per',1],['sag',2],['scut',3]].forEach(([id,k])=>PK.push({id,ly:'arms',th:24,b:1.1,pts:ring(t=>apos(k,3.2+t*12),40)}));
+PK.push({id:'gc',ly:'gc',th:12,b:1,pts:gcPos},
+{id:'disc',ly:'disc',th:46,b:1.8,pts:ring(()=>{const r=2+rnd()*13,a=rnd()*TAU;return new THREE.Vector3(r*Math.cos(a),0,r*Math.sin(a))},90)},
+{id:'halo',ly:'halo',th:42,b:2.2,pts:ring(()=>{const x=gs(),y=gs(),z=gs(),l=Math.hypot(x,y,z),r=14+rnd()*10;return new THREE.Vector3(x/l*r,y/l*r,z/l*r)},50)},
+{id:'dm',ly:'dm',th:70,b:2.5,pts:ring(()=>{const x=gs(),y=gs(),z=gs(),l=Math.hypot(x,y,z),r=20+rnd()*18;return new THREE.Vector3(x/l*r,y/l*r,z/l*r)},40)});
+// UI
+Object.keys(LM).forEach(k=>{const c=document.createElement('div');c.className='ch'+(ON[k]?'':' off');c.style.color=LM[k][1];c.innerHTML='<i></i><span style="color:var(--fg)">'+LM[k][0]+'</span>';c.onclick=()=>{ON[k]=!ON[k];c.classList.toggle('off',!ON[k]);if(LY[k])LY[k].forEach(o=>o.visible=ON[k]);if(sel&&LYOF[sel]===k)desel();if(hov&&LYOF[hov]===k)hov=null;upSel()};$('leg').appendChild(c)});
+let W=innerWidth,H=innerHeight,mode='orbit',sel=null,hov=null,gfov=42;
+const g={yaw:PHI,tilt:.02,dist:34,tx:0,tz:0},s={...g},look={y:PHI+Math.PI,p:.05};
+const V={top:()=>({tilt:.02,yaw:PHI,dist:34,tx:0,tz:0}),tilt:()=>({tilt:1.1,yaw:PHI+.35,dist:30,tx:0,tz:0})};
+const wrap=(y,ref)=>y+TAU*Math.round((ref-y)/TAU);
+const cl=(v,a,b)=>Math.min(b,Math.max(a,v));
+function fadeTo(fn){$('fade').style.opacity=1;setTimeout(()=>{fn();$('fade').style.opacity=0},430)}
+function btns(v){document.querySelectorAll('#views [data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===v));$('sunnote').style.opacity=v==='sun'?1:0}
+function orbitTo(v){const n=V[v]();n.yaw=wrap(n.yaw,s.yaw);if(mode==='sun')fadeTo(()=>{mode='orbit';gfov=cam.fov=42;Object.assign(g,n);Object.assign(s,n)});else Object.assign(g,n);btns(v)}
+document.querySelectorAll('#views [data-v]').forEach(b=>b.onclick=()=>{if(b.dataset.v==='sun'){if(mode==='sun')return;desel();fadeTo(()=>{mode='sun';look.y=PHI+Math.PI;look.p=.05;gfov=cam.fov=80});btns('sun')}else orbitTo(b.dataset.v)});
+$('reset').onclick=()=>{desel();orbitTo('top')};
+function select(id){sel=id;U.uSel.value=G[id];U.uDim.value=.38;const x=S[id];
+$('panel').innerHTML='<button class="x">×</button><div class="tag">'+x.t+'</div><h2>'+x.n+'</h2><p>'+x.d+'</p><h3>Función y características</h3><p>'+x.f+'</p><h3>Datos astronómicos</h3><dl>'+x.data.map(([k,v])=>'<dt>'+k+'</dt><dd>'+v+'</dd>').join('')+'</dl>'+(x.note?'<p class="note">'+x.note+'</p>':'');
+$('panel').querySelector('.x').onclick=desel;$('panel').classList.add('open');document.body.classList.add('pn');
+if(mode==='orbit'&&x.foc){const f=x.foc;if(f.length===2&&f[0]===9){const p=apos(({sag:2,per:1,scut:3,out:0})[id],9);g.tx=p.x;g.tz=p.z;g.dist=f[1]}else if(f[0]===9){g.tx=sunPos.x+(id==='ori'?T.x*0:0);g.tz=sunPos.z;g.dist=f[2]}else{g.tx=0;g.tz=0;g.dist=f.length===3?f[2]:f[1]}}}
+function desel(){sel=null;$('panel').classList.remove('open');document.body.classList.remove('pn');upSel()}
+function upSel(){U.uSel.value=sel?G[sel]:hov?G[hov]:-1;U.uDim.value=sel?.38:.62}
+addEventListener('keydown',e=>{if(e.key==='Escape')desel()});
+// cámara
+function upCam(dt){const k=1-Math.exp(-dt*4);
+if(mode==='orbit'){['yaw','tilt','dist','tx','tz'].forEach(p=>s[p]+=(g[p]-s[p])*k);const sn=Math.sin(s.tilt);cam.position.set(s.tx+s.dist*sn*Math.cos(s.yaw),s.dist*Math.cos(s.tilt),s.tz+s.dist*sn*Math.sin(s.yaw));cam.lookAt(s.tx,0,s.tz)}
+else{const c=Math.cos(look.p);cam.position.set(sunPos.x,.02,sunPos.z);cam.lookAt(sunPos.x+Math.cos(look.y)*c,.02+Math.sin(look.p),sunPos.z+Math.sin(look.y)*c)}
+cam.fov+=(gfov-cam.fov)*k;cam.updateProjectionMatrix();cam.updateMatrixWorld()}
+const tv=new THREE.Vector3();
+function scr(v){tv.copy(v).project(cam);if(tv.z>=1||tv.z<=-1)return null;return{x:(tv.x*.5+.5)*W,y:(-tv.y*.5+.5)*H}}
+function pick(mx,my){let best=null,bs=1;for(const p of PK){if(!ON[p.ly]||(mode==='sun'&&p.id==='sun'))continue;for(const v of p.pts){const q=scr(v);if(!q)continue;const c=Math.hypot(q.x-mx,q.y-my)/p.th*p.b;if(c<bs){bs=c;best=p.id}}}return best}
+function labels(){for(const l of LB){const q=scr(l.pos),vis=q&&ON[l.ly]&&(ON.labels||l.e.classList.contains('r'))&&!(mode==='sun'&&l.id==='sun');l.e.style.opacity=vis?1:0;if(vis)l.e.style.transform='translate('+q.x.toFixed(1)+'px,'+q.y.toFixed(1)+'px)';l.e.classList.toggle('sel',!!l.id&&(l.id===sel||l.id===hov))}}
+function scale(){const on=mode==='orbit'&&ON.scale;$('sb').style.display=on?'':'none';if(!on)return;const ppk=H/(2*s.dist*Math.tan(cam.fov*D/2));let v=[.1,.2,.5,1,2,5,10,20,50].find(x=>x*ppk>=70)||50;$('sbar').style.width=v*ppk+'px';const al=v*KLY*1000;$('stx').textContent=v+' kpc ≈ '+Math.round(al).toLocaleString('es-AR')+' años luz'}
+// interacción
+const P=new Map();let moved=0,btn=0;const tip=$('tip');
+const mid=()=>{const a=[...P.values()];return{x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2,d:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)}};
+function zoom(f){if(mode==='orbit')g.dist=cl(g.dist*f,.6,130);else gfov=cl(gfov*f,20,110)}
+function pan(dx,dy){if(mode!=='orbit')return;const m=cam.matrixWorld.elements,u=2*s.dist*Math.tan(cam.fov*D/2)/H;g.tx+=(-dx*m[0]+dy*m[4])*u;g.tz+=(-dx*m[2]+dy*m[6])*u}
+function rot(dx,dy){if(mode==='orbit'){g.yaw-=dx*.005;g.tilt=cl(g.tilt-dy*.005,.02,1.5)}else{const f=cam.fov/60;look.y-=dx*.0035*f;look.p=cl(look.p+dy*.0035*f,-1.4,1.4)}}
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);P.set(e.pointerId,{x:e.clientX,y:e.clientY});moved=0;btn=e.button;cv.style.cursor='grabbing'});
+cv.addEventListener('pointermove',e=>{const p=P.get(e.pointerId);
+if(!p){const id=pick(e.clientX,e.clientY);if(id!==hov){hov=id;upSel()}cv.style.cursor=id?'pointer':'grab';if(id){tip.innerHTML='<b>'+S[id].n+'</b><span>'+S[id].t+'</span>';tip.style.left=e.clientX+16+'px';tip.style.top=e.clientY+16+'px';tip.style.opacity=1}else tip.style.opacity=0;return}
+const dx=e.clientX-p.x,dy=e.clientY-p.y;moved+=Math.abs(dx)+Math.abs(dy);tip.style.opacity=0;
+if(P.size===2){const m0=mid();p.x=e.clientX;p.y=e.clientY;const m1=mid();zoom(m0.d/m1.d);pan(m1.x-m0.x,m1.y-m0.y)}else{p.x=e.clientX;p.y=e.clientY;if(btn===2||e.shiftKey)pan(dx,dy);else rot(dx,dy)}});
+const up=e=>{if(P.size===1&&moved<6&&e.type==='pointerup'){playClick();const id=pick(e.clientX,e.clientY);if(id)select(id);else if(sel)desel()}P.delete(e.pointerId);cv.style.cursor='grab'};
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);cv.addEventListener('pointerleave',()=>{tip.style.opacity=0});
+cv.addEventListener('wheel',e=>{e.preventDefault();zoom(Math.exp(e.deltaY*.0011))},{passive:false});
+cv.addEventListener('contextmenu',e=>e.preventDefault());
+// audio: música de fondo y sonido de clics (archivos del usuario)
+const mus=new Audio();mus.loop=true;mus.volume=.5;mus.src='musica.mp3';let clkUrl='click.mp3',cvol=.8;
+$('mn').textContent='musica.mp3';$('cn').textContent='click.mp3';
+mus.onerror=()=>{$('mn').textContent='Sin archivo';$('mp').textContent='▶'};
+{const pc=new Audio('click.mp3');pc.onerror=()=>{if(clkUrl==='click.mp3'){clkUrl=null;$('cn').textContent='Sin archivo'}}}
+addEventListener('pointerdown',()=>{if(mus.getAttribute('src')&&mus.paused)mus.play().then(()=>$('mp').textContent='⏸').catch(()=>{})},{once:true});
+const nm=f=>f.name.length>28?f.name.slice(0,26)+'…':f.name;
+function playClick(){if(!clkUrl)return;const a=new Audio(clkUrl);a.volume=cvol;a.play().catch(()=>{})}
+$('audb').onclick=()=>$('audp').classList.toggle('open');
+$('mf').onchange=e=>{const f=e.target.files[0];if(!f)return;if(mus.src.startsWith('blob:'))URL.revokeObjectURL(mus.src);mus.src=URL.createObjectURL(f);mus.play().then(()=>$('mp').textContent='⏸').catch(()=>$('mp').textContent='▶');$('mn').textContent=nm(f);e.target.value=''};
+$('mp').onclick=()=>{if(!mus.getAttribute('src'))return;if(mus.paused){mus.play();$('mp').textContent='⏸'}else{mus.pause();$('mp').textContent='▶'}};
+$('mx').onclick=()=>{mus.pause();mus.removeAttribute('src');mus.load();$('mn').textContent='Sin archivo';$('mp').textContent='▶'};
+$('mv').oninput=e=>mus.volume=+e.target.value;
+$('cf').onchange=e=>{const f=e.target.files[0];if(!f)return;if(clkUrl)URL.revokeObjectURL(clkUrl);clkUrl=URL.createObjectURL(f);$('cn').textContent=nm(f);e.target.value='';playClick()};
+$('cp').onclick=playClick;
+$('cx').onclick=()=>{if(clkUrl)URL.revokeObjectURL(clkUrl);clkUrl=null;$('cn').textContent='Sin archivo'};
+$('cvol').oninput=e=>cvol=+e.target.value;
+document.addEventListener('click',e=>{if(e.target===cv||e.target.closest('#aud'))return;playClick()});
+function size(){W=innerWidth;H=innerHeight;R.setSize(W,H,false);cam.aspect=W/H;cam.updateProjectionMatrix()}
+addEventListener('resize',size);size();
+let last=0;
+function frame(t){requestAnimationFrame(frame);const dt=Math.min((t-last)/1000,.05);last=t;U.uTime.value=t/1000;upCam(dt);U.uScale.value=H*R.getPixelRatio()/(2*Math.tan(cam.fov*D/2));R.render(scene,cam);labels();scale()}
+requestAnimationFrame(frame);
+</script></body></html>
